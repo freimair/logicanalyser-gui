@@ -20,14 +20,20 @@ public class Main extends Application {
 	public void start(Stage primaryStage) {
 		primaryStage.setTitle("Hello World!");
 
-		VBox root = new VBox(1);
+		VBox root = new VBox(2);
 
 		// HBox sequence[] = { new HBox(), new HBox(), new HBox(), new HBox(), new
 		// HBox(), new HBox(), new HBox(),
 		// new HBox() };
 
-		Canvas sequence[] = { new Canvas(1000, 10), new Canvas(1000, 10), new Canvas(1000, 10), new Canvas(1000, 10),
-				new Canvas(1000, 10), new Canvas(1000, 10), new Canvas(1000, 10), new Canvas(1000, 10) };
+		double totalwidth = 1000;
+		double totalheight = 500;
+		double width = totalwidth / 100;
+		double height = totalheight / 8;
+
+		Canvas sequence[] = { new Canvas(totalwidth, height), new Canvas(totalwidth, height),
+				new Canvas(totalwidth, height), new Canvas(totalwidth, height), new Canvas(totalwidth, height),
+				new Canvas(totalwidth, height), new Canvas(totalwidth, height), new Canvas(totalwidth, height) };
 
 		List<Character> data = getData();
 
@@ -38,9 +44,9 @@ public class Main extends Application {
 				GraphicsContext gc = sequence[i].getGraphicsContext2D();
 
 				if (0 == (data.get(current).charValue() & (1 << i)))
-					gc.strokeLine(current * 10, 10, current * 10 + 10, 10);
+					gc.strokeLine(current * width, height, current * width + width, height);
 				else
-					gc.strokeLine(current * 10, 0, current * 10 + 10, 0);
+					gc.strokeLine(current * width, 0, current * width + width, 0);
 			}
 		}
 		root.getChildren().addAll(sequence);
@@ -48,7 +54,7 @@ public class Main extends Application {
 		System.out.println("done setting things up " + (System.currentTimeMillis() - start));
 
 		start = System.currentTimeMillis();
-		primaryStage.setScene(new Scene(root, 1000, 500));
+		primaryStage.setScene(new Scene(root, totalwidth, totalheight));
 		primaryStage.show();
 		System.out.println("done rendering " + (System.currentTimeMillis() - start));
 
