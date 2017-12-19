@@ -2,7 +2,6 @@ package org.itdevas.logicanalyser;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -10,6 +9,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
 
 public class Main extends Application {
@@ -23,13 +23,9 @@ public class Main extends Application {
 
 		VBox root = new VBox(3);
 
-		// HBox sequence[] = { new HBox(), new HBox(), new HBox(), new HBox(), new
-		// HBox(), new HBox(), new HBox(),
-		// new HBox() };
-
 		double totalwidth = Math.pow(2, 13);
 		double totalheight = 500;
-		double width = totalwidth / 100;
+		double width = 1;
 		double height = totalheight / 8;
 
 		Canvas sequence[] = { new Canvas(totalwidth, height), new Canvas(totalwidth, height),
@@ -44,10 +40,14 @@ public class Main extends Application {
 			GraphicsContext gc = sequence[i].getGraphicsContext2D();
 			gc.strokeLine(0, height, totalwidth, height);
 
+			Scale scale = new Scale();
+			scale.setX(1000 / totalwidth);
+			sequence[i].getTransforms().add(scale);
+
 			for (int current = 0; current < data.size() - 1; current++) {
 
 				gc.setLineCap(StrokeLineCap.BUTT);
-				gc.setLineWidth(3);
+				gc.setLineWidth(10);
 
 				if (0 == (data.get(current).charValue() & (1 << i)))
 					gc.strokeLine(current * width, height, current * width + width, height);
@@ -72,10 +72,9 @@ public class Main extends Application {
 	private List<Character> getData() {
 		List<Character> result = new ArrayList<>();
 
-		for (int i = 0; i < Math.pow(2, 13); i++)
-			for (int j = 0; j < new Random().nextInt(10); j++) {
+		for (int i = 0; i < 256; i++)
+			for (int j = 0; j < 32; j++) {
 				result.add(new Character((char) i));
-				i += j;
 			}
 
 		return result;
