@@ -27,7 +27,7 @@ public class Main extends Application {
 		// HBox(), new HBox(), new HBox(),
 		// new HBox() };
 
-		double totalwidth = 1000;
+		double totalwidth = Math.pow(2, 13);
 		double totalheight = 500;
 		double width = totalwidth / 100;
 		double height = totalheight / 8;
@@ -63,7 +63,7 @@ public class Main extends Application {
 		System.out.println("done setting things up " + (System.currentTimeMillis() - start));
 
 		start = System.currentTimeMillis();
-		primaryStage.setScene(new Scene(root, totalwidth, totalheight));
+		primaryStage.setScene(new Scene(root, 1000, totalheight));
 		primaryStage.show();
 		System.out.println("done rendering " + (System.currentTimeMillis() - start));
 
@@ -72,9 +72,11 @@ public class Main extends Application {
 	private List<Character> getData() {
 		List<Character> result = new ArrayList<>();
 
-		for (int i = 0; i < 101; i++)
-			for (int j = 0; j < new Random().nextInt(10); j++)
+		for (int i = 0; i < Math.pow(2, 13); i++)
+			for (int j = 0; j < new Random().nextInt(10); j++) {
 				result.add(new Character((char) i));
+				i += j;
+			}
 
 		return result;
 	}
