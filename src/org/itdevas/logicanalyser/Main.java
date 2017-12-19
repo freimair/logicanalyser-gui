@@ -9,6 +9,7 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.StrokeLineCap;
 import javafx.stage.Stage;
 
 public class Main extends Application {
@@ -20,7 +21,7 @@ public class Main extends Application {
 	public void start(Stage primaryStage) {
 		primaryStage.setTitle("Hello World!");
 
-		VBox root = new VBox(2);
+		VBox root = new VBox(3);
 
 		// HBox sequence[] = { new HBox(), new HBox(), new HBox(), new HBox(), new
 		// HBox(), new HBox(), new HBox(),
@@ -40,8 +41,13 @@ public class Main extends Application {
 		long start = System.currentTimeMillis();
 
 		for (int i = 0; i < sequence.length; i++) {
+			GraphicsContext gc = sequence[i].getGraphicsContext2D();
+			gc.strokeLine(0, height, totalwidth, height);
+
 			for (int current = 0; current < data.size() - 1; current++) {
-				GraphicsContext gc = sequence[i].getGraphicsContext2D();
+
+				gc.setLineCap(StrokeLineCap.BUTT);
+				gc.setLineWidth(3);
 
 				if (0 == (data.get(current).charValue() & (1 << i)))
 					gc.strokeLine(current * width, height, current * width + width, height);
