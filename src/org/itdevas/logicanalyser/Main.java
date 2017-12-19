@@ -27,6 +27,8 @@ public class Main extends Application {
 
 		List<Character> data = getData();
 
+		long start = System.currentTimeMillis();
+
 		for (Character current : data) {
 			for (int i = 0; i < sequence.length; i++) {
 				Label tmp = new Label();
@@ -36,9 +38,13 @@ public class Main extends Application {
 		}
 
 		root.getChildren().addAll(sequence);
+		System.out.println("done setting things up " + (System.currentTimeMillis() - start));
 
+		start = System.currentTimeMillis();
 		primaryStage.setScene(new Scene(root, 1000, 500));
 		primaryStage.show();
+		System.out.println("done rendering " + (System.currentTimeMillis() - start));
+
 	}
 
 	private List<Character> getData() {
