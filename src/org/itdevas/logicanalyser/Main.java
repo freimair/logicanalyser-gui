@@ -7,13 +7,20 @@ import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
+import javafx.scene.control.Control;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.control.TextField;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.transform.Scale;
@@ -74,7 +81,7 @@ public class Main extends Application {
 		});
 
 		double width = 1;
-		double height = (totalheight - 7 * 3 - 30) / 8;
+		double height = (totalheight - 7 * 3) / 8;
 
 		Canvas sequence[] = { new Canvas(totalwidth, height), new Canvas(totalwidth, height),
 				new Canvas(totalwidth, height), new Canvas(totalwidth, height), new Canvas(totalwidth, height),
@@ -91,7 +98,7 @@ public class Main extends Application {
 			for (int current = 0; current < data.size() - 1; current++) {
 
 				gc.setLineCap(StrokeLineCap.BUTT);
-				gc.setLineWidth(10);
+				gc.setLineWidth(5);
 
 				if (0 == (data.get(current).charValue() & (1 << i)))
 					gc.strokeLine(current * width, height, current * width + width, height);
@@ -118,7 +125,34 @@ public class Main extends Application {
 		root.setVbarPolicy(ScrollBarPolicy.NEVER);
 		root.setHbarPolicy(ScrollBarPolicy.ALWAYS);
 
-		primaryStage.setScene(new Scene(root, 1000, totalheight));
+		VBox traceControl = new VBox(3);
+		traceControl.setMaxWidth(Control.USE_PREF_SIZE);
+		traceControl.setMinWidth(Control.USE_PREF_SIZE);
+		for (int i = 0; i < sequence.length; i++) {
+			HBox controls = new HBox(3);
+			// controls.setFillHeight(true);
+			VBox.setVgrow(controls, Priority.ALWAYS);
+			controls.setAlignment(Pos.CENTER_RIGHT);
+			Button moveUp = new Button("up");
+			Button moveDown = new Button("down");
+			Button hide = new Button("-");
+			TextField label = new TextField("Ch" + i);
+			Label channel = new Label(String.format("Channel %2d:", i));
+			controls.getChildren().add(channel);
+			controls.getChildren().add(label);
+			controls.getChildren().add(moveUp);
+			controls.getChildren().add(moveDown);
+			controls.getChildren().add(hide);
+
+			traceControl.getChildren().add(controls);
+		}
+
+		HBox columns = new HBox(3);
+		// columns.setFillHeight(true);
+		columns.getChildren().add(traceControl); // add trace controls
+		columns.getChildren().add(root); // add traces
+
+		primaryStage.setScene(new Scene(columns, 1400, totalheight));
 		primaryStage.show();
 		System.out.println("done rendering " + (System.currentTimeMillis() - start));
 
