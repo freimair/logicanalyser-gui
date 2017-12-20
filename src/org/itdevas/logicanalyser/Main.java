@@ -40,10 +40,6 @@ public class Main extends Application {
 			GraphicsContext gc = sequence[i].getGraphicsContext2D();
 			gc.strokeLine(0, height, totalwidth, height);
 
-			Scale scale = new Scale();
-			scale.setX(1000 / totalwidth);
-			sequence[i].getTransforms().add(scale);
-
 			for (int current = 0; current < data.size() - 1; current++) {
 
 				gc.setLineCap(StrokeLineCap.BUTT);
@@ -59,6 +55,9 @@ public class Main extends Application {
 			}
 		}
 		root.getChildren().addAll(sequence);
+
+		// setup scale object
+		root.getTransforms().add(new Scale(1000 / totalwidth, 500 / totalheight));
 
 		System.out.println("done setting things up " + (System.currentTimeMillis() - start));
 
