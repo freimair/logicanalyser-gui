@@ -6,11 +6,14 @@ import java.util.List;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.EventHandler;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.transform.Scale;
@@ -33,6 +36,17 @@ public class Main extends Application {
 		root = new ScrollPane();
 
 		VBox vbox = new VBox(3);
+		root.setOnScroll(new EventHandler<ScrollEvent>() {
+
+			@Override
+			public void handle(ScrollEvent event) {
+				if (0 == event.getDeltaY())
+					return;
+
+				event.consume();
+				scale.setX(scale.getX() * (1 + Math.signum(event.getDeltaY()) / 50));
+			}
+		});
 		root.widthProperty().addListener(new ChangeListener<Number>() {
 			@Override
 			public void changed(ObservableValue<? extends Number> observableValue, Number oldWidth, Number newWidth) {
@@ -85,7 +99,7 @@ public class Main extends Application {
 
 		start = System.currentTimeMillis();
 
-		root.setContent(vbox);
+		root.setContent(new Group(vbox));
 		root.setFitToHeight(true);
 		root.setPannable(true);
 		root.setVbarPolicy(ScrollBarPolicy.NEVER);
