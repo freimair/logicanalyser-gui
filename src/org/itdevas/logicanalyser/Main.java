@@ -22,10 +22,14 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.transform.Scale;
@@ -46,9 +50,25 @@ public class Main extends Application {
 	public void start(Stage primaryStage) {
 		primaryStage.setTitle("Hello World!");
 
+		double width = 1;
+		double height = (totalheight - 8 * 3 - 30) / 9;
+
 		root = new ScrollPane();
 
 		VBox vbox = new VBox(3);
+
+		Slider triggerPosition = new Slider(0, totalwidth, totalwidth / 2);
+
+		triggerPosition.setMaxWidth(Control.USE_PREF_SIZE);
+		triggerPosition.setMinWidth(Control.USE_PREF_SIZE);
+		triggerPosition.setPrefHeight(height);
+		vbox.getChildren().add(triggerPosition);
+
+		vbox.setMaxWidth(Control.USE_PREF_SIZE);
+		vbox.setMinWidth(Control.USE_PREF_SIZE);
+
+		vbox.prefWidthProperty().bind(triggerPosition.widthProperty());
+
 		vbox.setOnScroll(new EventHandler<ScrollEvent>() {
 
 			@Override
@@ -62,13 +82,15 @@ public class Main extends Application {
 
 				double width = root.getContent().getBoundsInLocal().getWidth();
 				double viewportwidth = root.getViewportBounds().getWidth();
-				double x = event.getX() * scale.getX();
+				double x = event.getX();
 				double z = x - root.getHvalue() * (width - viewportwidth); // workaround. minX does is mostly not
-				double newx = event.getX() * newscale;
+				double newx = event.getX() * newscale / scale.getX();
 				// correct
 				scale.setX(newscale);
 				root.setHvalue(root.getHmax() * (newx - z)
 						/ (root.getContent().getBoundsInLocal().getWidth() - root.getViewportBounds().getWidth()));
+
+				triggerPosition.setPrefWidth(totalwidth * scale.getX());
 				event.consume();
 			}
 		});
@@ -79,15 +101,13 @@ public class Main extends Application {
 					scale.setX(scale.getX() * newWidth.doubleValue() / oldWidth.doubleValue());
 			}
 		});
-		root.heightProperty().addListener(new ChangeListener<Number>() {
-			@Override
-			public void changed(ObservableValue<? extends Number> observableValue, Number oldHeight, Number newHeight) {
-				scale.setY(newHeight.doubleValue() / totalheight);
-			}
-		});
-
-		double width = 1;
-		double height = (totalheight - 7 * 3) / 8;
+		// root.heightProperty().addListener(new ChangeListener<Number>() {
+		// @Override
+		// public void changed(ObservableValue<? extends Number> observableValue, Number
+		// oldHeight, Number newHeight) {
+		// scale.setY(newHeight.doubleValue() / totalheight);
+		// }
+		// });
 
 		Canvas sequence[] = { new Canvas(totalwidth, height), new Canvas(totalwidth, height),
 				new Canvas(totalwidth, height), new Canvas(totalwidth, height), new Canvas(totalwidth, height),
@@ -96,6 +116,10 @@ public class Main extends Application {
 		List<Character> data = getData();
 
 		long start = System.currentTimeMillis();
+
+		// setup scale object
+		scale = new Scale(1000 / totalwidth, 1);
+		triggerPosition.setPrefWidth(totalwidth * scale.getX());
 
 		for (int i = 0; i < sequence.length; i++) {
 			GraphicsContext gc = sequence[i].getGraphicsContext2D();
@@ -114,12 +138,9 @@ public class Main extends Application {
 				if ((data.get(current).charValue() & (1 << i)) != (data.get(current + 1).charValue() & (1 << i)))
 					gc.strokeLine((current + 1) * width, 0, (current + 1) * width, height);
 			}
+			sequence[i].getTransforms().add(scale);
 		}
 		vbox.getChildren().addAll(sequence);
-
-		// setup scale object
-		scale = new Scale(1000 / totalwidth, 1);
-		vbox.getTransforms().add(scale);
 
 		System.out.println("done setting things up " + (System.currentTimeMillis() - start));
 
@@ -135,8 +156,24 @@ public class Main extends Application {
 		traceControl.setMaxWidth(Control.USE_PREF_SIZE);
 		traceControl.setMinWidth(Control.USE_PREF_SIZE);
 		HBox controls[] = { new HBox(3), new HBox(3), new HBox(3), new HBox(3), new HBox(3), new HBox(3), new HBox(3),
-				new HBox(3) };
-		for (int i = 0; i < sequence.length; i++) {
+				new HBox(3), new HBox(3) };
+
+		VBox.setVgrow(controls[0], Priority.ALWAYS);
+		controls[0].setAlignment(Pos.CENTER_RIGHT);
+		Label triggerlabel = new Label("Trigger condition:");
+		TextField triggercondition = new TextField("0bx");
+		ToggleGroup triggerMode = new ToggleGroup();
+		ToggleButton triggerModeSingleShot = new ToggleButton("single");
+		triggerModeSingleShot.setToggleGroup(triggerMode);
+		ToggleButton triggerModeNormal = new ToggleButton("normal");
+		triggerModeNormal.setToggleGroup(triggerMode);
+
+		controls[0].getChildren().add(triggerlabel);
+		controls[0].getChildren().add(triggercondition);
+		controls[0].getChildren().add(triggerModeSingleShot);
+		controls[0].getChildren().add(triggerModeNormal);
+
+		for (int i = 1; i < sequence.length + 1; i++) {
 			VBox.setVgrow(controls[i], Priority.ALWAYS);
 			controls[i].setAlignment(Pos.CENTER_RIGHT);
 			Button moveUp = new Button("up");
@@ -178,7 +215,7 @@ public class Main extends Application {
 					traceControl.getChildren().remove(position);
 					Node trace = vbox.getChildren().remove(position);
 
-					MenuItem justHidden = new MenuItem(String.format("Channel %2d", i));
+					MenuItem justHidden = new MenuItem(String.format("Channel %2d", i - 1));
 					justHidden.setUserData(new Object[] { position, controls[i], trace });
 					justHidden.setOnAction(new EventHandler<ActionEvent>() {
 
@@ -194,7 +231,7 @@ public class Main extends Application {
 				}
 			});
 			TextField label = new TextField("Ch" + i);
-			Label channel = new Label(String.format("Channel %2d:", i));
+			Label channel = new Label(String.format("Channel %2d:", i - 1));
 			controls[i].getChildren().add(channel);
 			controls[i].getChildren().add(label);
 			controls[i].getChildren().add(moveUp);
@@ -203,6 +240,9 @@ public class Main extends Application {
 
 		}
 		traceControl.getChildren().addAll(controls);
+		Region spacer = new Region();
+		spacer.setPrefHeight(28);
+		traceControl.getChildren().add(spacer);
 
 		add = new MenuButton("add");
 		add.setMinWidth(Control.USE_PREF_SIZE);
