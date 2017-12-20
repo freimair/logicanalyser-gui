@@ -2,7 +2,6 @@ package org.itdevas.logicanalyser;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
@@ -10,10 +9,11 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.transform.Scale;
-import javafx.scene.transform.Transform;
 import javafx.stage.Stage;
 
 public class Main extends Application {
@@ -21,42 +21,33 @@ public class Main extends Application {
 		launch(args);
 	}
 
-	private VBox root;
+	private ScrollPane root;
 	double totalwidth = Math.pow(2, 13);
 	double totalheight = 500;
+	private Scale scale;
 
 	@Override
 	public void start(Stage primaryStage) {
 		primaryStage.setTitle("Hello World!");
 
-		root = new VBox(3);
+		root = new ScrollPane();
+
+		VBox vbox = new VBox(3);
 		root.widthProperty().addListener(new ChangeListener<Number>() {
 			@Override
 			public void changed(ObservableValue<? extends Number> observableValue, Number oldWidth, Number newWidth) {
-				((Scale) root.getTransforms().filtered(new Predicate<Transform>() {
-
-					@Override
-					public boolean test(Transform t) {
-						return t instanceof Scale;
-					}
-				}).get(0)).setX(newWidth.doubleValue() / totalwidth);
+				scale.setX(newWidth.doubleValue() / totalwidth);
 			}
 		});
 		root.heightProperty().addListener(new ChangeListener<Number>() {
 			@Override
 			public void changed(ObservableValue<? extends Number> observableValue, Number oldHeight, Number newHeight) {
-				((Scale) root.getTransforms().filtered(new Predicate<Transform>() {
-
-					@Override
-					public boolean test(Transform t) {
-						return t instanceof Scale;
-					}
-				}).get(0)).setY(newHeight.doubleValue() / totalheight);
+				scale.setY(newHeight.doubleValue() / totalheight);
 			}
 		});
 
 		double width = 1;
-		double height = (totalheight - 7 * 3) / 8;
+		double height = (totalheight - 7 * 3 - 30) / 8;
 
 		Canvas sequence[] = { new Canvas(totalwidth, height), new Canvas(totalwidth, height),
 				new Canvas(totalwidth, height), new Canvas(totalwidth, height), new Canvas(totalwidth, height),
@@ -84,14 +75,22 @@ public class Main extends Application {
 					gc.strokeLine((current + 1) * width, 0, (current + 1) * width, height);
 			}
 		}
-		root.getChildren().addAll(sequence);
+		vbox.getChildren().addAll(sequence);
 
 		// setup scale object
-		root.getTransforms().add(new Scale(1000 / totalwidth, 500 / totalheight));
+		scale = new Scale(1, 1);
+		vbox.getTransforms().add(scale);
 
 		System.out.println("done setting things up " + (System.currentTimeMillis() - start));
 
 		start = System.currentTimeMillis();
+
+		root.setContent(vbox);
+		root.setFitToHeight(true);
+		root.setPannable(true);
+		root.setVbarPolicy(ScrollBarPolicy.NEVER);
+		root.setHbarPolicy(ScrollBarPolicy.ALWAYS);
+
 		primaryStage.setScene(new Scene(root, 1000, totalheight));
 		primaryStage.show();
 		System.out.println("done rendering " + (System.currentTimeMillis() - start));
