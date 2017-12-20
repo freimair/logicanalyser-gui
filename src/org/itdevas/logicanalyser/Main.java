@@ -18,6 +18,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.TextField;
@@ -38,6 +40,7 @@ public class Main extends Application {
 	double totalwidth = Math.pow(2, 13);
 	double totalheight = 500;
 	private Scale scale;
+	private MenuButton add;
 
 	@Override
 	public void start(Stage primaryStage) {
@@ -142,7 +145,7 @@ public class Main extends Application {
 				@Override
 				public void handle(ActionEvent event) {
 					int position = traceControl.getChildren().indexOf(controls[i]);
-					if (1 > position)
+					if (2 > position)
 						return;
 					traceControl.getChildren().remove(position);
 					traceControl.getChildren().add(position - 1, controls[i]);
@@ -157,7 +160,7 @@ public class Main extends Application {
 				@Override
 				public void handle(ActionEvent event) {
 					int position = traceControl.getChildren().indexOf(controls[i]);
-					if (controls.length - 1 <= position)
+					if (traceControl.getChildren().size() - 1 <= position)
 						return;
 					traceControl.getChildren().remove(position);
 					traceControl.getChildren().add(position + 1, controls[i]);
@@ -166,7 +169,30 @@ public class Main extends Application {
 					vbox.getChildren().add(position + 1, trace);
 				}
 			});
-			Button hide = new Button("-");
+			Button hide = new Button("hide");
+			hide.setOnAction(new EventHandlerWithI<ActionEvent>(i) {
+
+				@Override
+				public void handle(ActionEvent event) {
+					int position = traceControl.getChildren().indexOf(controls[i]);
+					traceControl.getChildren().remove(position);
+					Node trace = vbox.getChildren().remove(position);
+
+					MenuItem justHidden = new MenuItem(String.format("Channel %2d", i));
+					justHidden.setUserData(new Object[] { position, controls[i], trace });
+					justHidden.setOnAction(new EventHandler<ActionEvent>() {
+
+						@Override
+						public void handle(ActionEvent event) {
+							Object[] userdata = (Object[]) ((MenuItem) event.getSource()).getUserData();
+							traceControl.getChildren().add((int) userdata[0], (Node) userdata[1]);
+							vbox.getChildren().add((int) userdata[0], (Node) userdata[2]);
+							add.getItems().remove(event.getSource());
+						}
+					});
+					add.getItems().add(justHidden);
+				}
+			});
 			TextField label = new TextField("Ch" + i);
 			Label channel = new Label(String.format("Channel %2d:", i));
 			controls[i].getChildren().add(channel);
@@ -178,9 +204,16 @@ public class Main extends Application {
 		}
 		traceControl.getChildren().addAll(controls);
 
+		add = new MenuButton("add");
+		add.setMinWidth(Control.USE_PREF_SIZE);
+		MenuItem hiddenTraces = new MenuItem("hidden traces:");
+		hiddenTraces.setDisable(true);
+		add.getItems().add(hiddenTraces);
+
 		HBox columns = new HBox(3);
 		columns.getChildren().add(traceControl); // add trace controls
 		columns.getChildren().add(root); // add traces
+		columns.getChildren().add(add);
 
 		primaryStage.setScene(new Scene(columns, 1400, totalheight));
 		primaryStage.show();
