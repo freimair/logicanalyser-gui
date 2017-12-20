@@ -36,21 +36,34 @@ public class Main extends Application {
 		root = new ScrollPane();
 
 		VBox vbox = new VBox(3);
-		root.setOnScroll(new EventHandler<ScrollEvent>() {
+		vbox.setOnScroll(new EventHandler<ScrollEvent>() {
 
 			@Override
 			public void handle(ScrollEvent event) {
 				if (0 == event.getDeltaY())
 					return;
 
+				double newscale = scale.getX() * (1 + Math.signum(event.getDeltaY()) / 50);
+				if (root.getWidth() >= newscale * totalwidth)
+					newscale = root.getWidth() / totalwidth; // display all we have
+
+				double width = root.getContent().getBoundsInLocal().getWidth();
+				double viewportwidth = root.getViewportBounds().getWidth();
+				double x = event.getX() * scale.getX();
+				double z = x - root.getHvalue() * (width - viewportwidth); // workaround. minX does is mostly not
+				double newx = event.getX() * newscale;
+				// correct
+				scale.setX(newscale);
+				root.setHvalue(root.getHmax() * (newx - z)
+						/ (root.getContent().getBoundsInLocal().getWidth() - root.getViewportBounds().getWidth()));
 				event.consume();
-				scale.setX(scale.getX() * (1 + Math.signum(event.getDeltaY()) / 50));
 			}
 		});
 		root.widthProperty().addListener(new ChangeListener<Number>() {
 			@Override
 			public void changed(ObservableValue<? extends Number> observableValue, Number oldWidth, Number newWidth) {
-				scale.setX(newWidth.doubleValue() / totalwidth);
+				if (0 != oldWidth.doubleValue())
+					scale.setX(scale.getX() * newWidth.doubleValue() / oldWidth.doubleValue());
 			}
 		});
 		root.heightProperty().addListener(new ChangeListener<Number>() {
@@ -92,7 +105,7 @@ public class Main extends Application {
 		vbox.getChildren().addAll(sequence);
 
 		// setup scale object
-		scale = new Scale(1, 1);
+		scale = new Scale(1000 / totalwidth, 1);
 		vbox.getTransforms().add(scale);
 
 		System.out.println("done setting things up " + (System.currentTimeMillis() - start));
