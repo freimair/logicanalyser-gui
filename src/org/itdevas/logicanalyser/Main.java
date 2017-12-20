@@ -6,9 +6,12 @@ import java.util.List;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -128,27 +131,54 @@ public class Main extends Application {
 		VBox traceControl = new VBox(3);
 		traceControl.setMaxWidth(Control.USE_PREF_SIZE);
 		traceControl.setMinWidth(Control.USE_PREF_SIZE);
+		HBox controls[] = { new HBox(3), new HBox(3), new HBox(3), new HBox(3), new HBox(3), new HBox(3), new HBox(3),
+				new HBox(3) };
 		for (int i = 0; i < sequence.length; i++) {
-			HBox controls = new HBox(3);
-			// controls.setFillHeight(true);
-			VBox.setVgrow(controls, Priority.ALWAYS);
-			controls.setAlignment(Pos.CENTER_RIGHT);
+			VBox.setVgrow(controls[i], Priority.ALWAYS);
+			controls[i].setAlignment(Pos.CENTER_RIGHT);
 			Button moveUp = new Button("up");
+			moveUp.setOnAction(new EventHandlerWithI<ActionEvent>(i) {
+
+				@Override
+				public void handle(ActionEvent event) {
+					int position = traceControl.getChildren().indexOf(controls[i]);
+					if (1 > position)
+						return;
+					traceControl.getChildren().remove(position);
+					traceControl.getChildren().add(position - 1, controls[i]);
+
+					Node trace = vbox.getChildren().remove(position);
+					vbox.getChildren().add(position - 1, trace);
+				}
+			});
 			Button moveDown = new Button("down");
+			moveDown.setOnAction(new EventHandlerWithI<ActionEvent>(i) {
+
+				@Override
+				public void handle(ActionEvent event) {
+					int position = traceControl.getChildren().indexOf(controls[i]);
+					if (controls.length - 1 <= position)
+						return;
+					traceControl.getChildren().remove(position);
+					traceControl.getChildren().add(position + 1, controls[i]);
+
+					Node trace = vbox.getChildren().remove(position);
+					vbox.getChildren().add(position + 1, trace);
+				}
+			});
 			Button hide = new Button("-");
 			TextField label = new TextField("Ch" + i);
 			Label channel = new Label(String.format("Channel %2d:", i));
-			controls.getChildren().add(channel);
-			controls.getChildren().add(label);
-			controls.getChildren().add(moveUp);
-			controls.getChildren().add(moveDown);
-			controls.getChildren().add(hide);
+			controls[i].getChildren().add(channel);
+			controls[i].getChildren().add(label);
+			controls[i].getChildren().add(moveUp);
+			controls[i].getChildren().add(moveDown);
+			controls[i].getChildren().add(hide);
 
-			traceControl.getChildren().add(controls);
 		}
+		traceControl.getChildren().addAll(controls);
 
 		HBox columns = new HBox(3);
-		// columns.setFillHeight(true);
 		columns.getChildren().add(traceControl); // add trace controls
 		columns.getChildren().add(root); // add traces
 
@@ -156,6 +186,14 @@ public class Main extends Application {
 		primaryStage.show();
 		System.out.println("done rendering " + (System.currentTimeMillis() - start));
 
+	}
+
+	abstract class EventHandlerWithI<T extends Event> implements EventHandler<T> {
+		protected int i;
+
+		public EventHandlerWithI(int i) {
+			this.i = i;
+		}
 	}
 
 	private List<Character> getData() {
