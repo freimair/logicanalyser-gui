@@ -2,14 +2,18 @@ package org.itdevas.logicanalyser;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.transform.Scale;
+import javafx.scene.transform.Transform;
 import javafx.stage.Stage;
 
 public class Main extends Application {
@@ -17,16 +21,42 @@ public class Main extends Application {
 		launch(args);
 	}
 
+	private VBox root;
+	double totalwidth = Math.pow(2, 13);
+	double totalheight = 500;
+
 	@Override
 	public void start(Stage primaryStage) {
 		primaryStage.setTitle("Hello World!");
 
-		VBox root = new VBox(3);
+		root = new VBox(3);
+		root.widthProperty().addListener(new ChangeListener<Number>() {
+			@Override
+			public void changed(ObservableValue<? extends Number> observableValue, Number oldWidth, Number newWidth) {
+				((Scale) root.getTransforms().filtered(new Predicate<Transform>() {
 
-		double totalwidth = Math.pow(2, 13);
-		double totalheight = 500;
+					@Override
+					public boolean test(Transform t) {
+						return t instanceof Scale;
+					}
+				}).get(0)).setX(newWidth.doubleValue() / totalwidth);
+			}
+		});
+		root.heightProperty().addListener(new ChangeListener<Number>() {
+			@Override
+			public void changed(ObservableValue<? extends Number> observableValue, Number oldHeight, Number newHeight) {
+				((Scale) root.getTransforms().filtered(new Predicate<Transform>() {
+
+					@Override
+					public boolean test(Transform t) {
+						return t instanceof Scale;
+					}
+				}).get(0)).setY(newHeight.doubleValue() / totalheight);
+			}
+		});
+
 		double width = 1;
-		double height = totalheight / 8;
+		double height = (totalheight - 7 * 3) / 8;
 
 		Canvas sequence[] = { new Canvas(totalwidth, height), new Canvas(totalwidth, height),
 				new Canvas(totalwidth, height), new Canvas(totalwidth, height), new Canvas(totalwidth, height),
